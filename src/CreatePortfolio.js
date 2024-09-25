@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './styles.css';
 import { FaPlus, FaCamera, FaLink, FaFacebook, FaTwitter, FaLinkedin } from 'react-icons/fa'; // Import social icons
+import axios from 'axios'; // Axios for API calls
 
 const CreatePortfolio = () => {
   const editorRef = useRef(null);
@@ -11,9 +12,10 @@ const CreatePortfolio = () => {
   const [showSocialPopup, setShowSocialPopup] = useState(false); // State for the social media popup
   const [socialLinks, setSocialLinks] = useState([]); // Store the list of social links
   const [currentLinks, setCurrentLinks] = useState([{ platform: '', url: '' }]); // Store multiple links
-
-  const [title, setTitle] = useState('Add your title here');
-  const [description, setDescription] = useState('Description');
+  const [qrCodeUrl, setQrCodeUrl] = useState(null); // State to hold the generated QR code URL
+  const [userId] = useState('615c5b4a2f4b5a4d4483dfea'); // Example user ID, replace with actual user data
+  const [title, setTitle] = useState('Add your title here'); // Initial placeholder text
+  const [description, setDescription] = useState('Description'); // Initial placeholder text
   const [contentPlaceholder, setContentPlaceholder] = useState('Start creating your content here...');
 
   // Handle text selection to show toolbar
@@ -72,6 +74,32 @@ const CreatePortfolio = () => {
     setShowMediaToolbar(false); // Close media toolbar after upload
   };
 
+  // Handle form submission to save portfolio and generate QR code
+  const handlePublish = async () => {
+    const content = editorRef.current.innerHTML; // Get the HTML content from the editor
+
+    // Validate title and description before sending
+    if (!title || !description || title === 'Add your title here' || description === 'Description') {
+      alert('Title and Description are required.');
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://localhost:5000/portfolios', {
+        userId,
+        title,
+        description,
+        content
+      });
+
+      // Set the generated QR code URL from the response
+      setQrCodeUrl(response.data.qrCodeUrl);
+    } catch (error) {
+      console.error('Error publishing portfolio:', error);
+      alert('Failed to publish portfolio.');
+    }
+  };
+
   // Insert social media links and render them
   const handleAddSocialLinks = () => {
     const validLinks = currentLinks.filter(link => link.platform && link.url); // Ensure we only add valid links
@@ -102,20 +130,11 @@ const CreatePortfolio = () => {
   // Handle making social media icons clickable by wrapping them in an anchor element
   const renderSocialLinks = () => {
     return socialLinks.map((link, index) => (
-      <a 
-        key={index} 
-        href={link.url} 
-        target="_blank" 
-        rel="noopener noreferrer" 
-        style={{ textDecoration: 'none', pointerEvents: 'auto' }} // Ensure links are clickable
-        contentEditable={false} // Prevent editing the links
-      >
+      <a key={index} href={link.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }} contentEditable={false}>
         {getSocialIconComponent(link.platform)}
       </a>
     ));
   };
-  
-  
 
   // Detect if text is deselected to hide the toolbar
   const handleDeselect = () => {
@@ -132,6 +151,17 @@ const CreatePortfolio = () => {
       setSelectedRange(selection.getRangeAt(0)); // Save the cursor position before toggling the toolbar
     }
     setShowMediaToolbar(!showMediaToolbar);
+  };
+
+  // Custom input handler to prevent reversing of the title and description
+  const handleCustomInput = (e, type) => {
+    const value = e.currentTarget.textContent;
+
+    if (type === 'title') {
+      setTitle(value); // Only update title on user input
+    } else if (type === 'description') {
+      setDescription(value); // Only update description on user input
+    }
   };
 
   // Listen for keyboard events and mouseup to detect selection
@@ -154,22 +184,44 @@ const CreatePortfolio = () => {
         className="title"
         contentEditable
         suppressContentEditableWarning
-        onFocus={() => setTitle('')}
-        onBlur={(e) => !e.target.textContent && setTitle('Add your title here')}
-      >
-        {title}
-      </div>
-
+        ref={(el) => {
+          if (el && title === 'Add your title here') el.textContent = 'Add your title here';
+        }}
+        onFocus={(e) => {
+          if (e.currentTarget.textContent === 'Add your title here') {
+            e.currentTarget.textContent = ''; // Clear placeholder on focus
+          }
+        }}
+        onBlur={(e) => {
+          if (!e.currentTarget.textContent.trim()) {
+            e.currentTarget.textContent = 'Add your title here'; // Restore placeholder if empty
+          } else {
+            setTitle(e.currentTarget.textContent.trim()); // Update title
+          }
+        }}
+      />
+  
       {/* Description input */}
       <div
         className="description"
         contentEditable
         suppressContentEditableWarning
-        onFocus={() => setDescription('')}
-        onBlur={(e) => !e.target.textContent && setDescription('Description')}
-      >
-        {description}
-      </div>
+        ref={(el) => {
+          if (el && description === 'Description') el.textContent = 'Description';
+        }}
+        onFocus={(e) => {
+          if (e.currentTarget.textContent === 'Description') {
+            e.currentTarget.textContent = ''; // Clear placeholder on focus
+          }
+        }}
+        onBlur={(e) => {
+          if (!e.currentTarget.textContent.trim()) {
+            e.currentTarget.textContent = 'Description'; // Restore placeholder if empty
+          } else {
+            setDescription(e.currentTarget.textContent.trim()); // Update description
+          }
+        }}
+      />
 
       {/* Content editor */}
       <div
@@ -270,6 +322,20 @@ const CreatePortfolio = () => {
           ))}
           <button onClick={addMoreSocialLinks}>+ Add another link</button>
           <button onClick={handleAddSocialLinks}>Set Social Links</button>
+        </div>
+      )}
+
+      {/* Publish button */}
+      <div className="publish-container">
+        <button className="publish-button" onClick={handlePublish}>Publish</button>
+      </div>
+
+      {/* QR Code Popup */}
+      {qrCodeUrl && (
+        <div className="qr-code-popup">
+          <h3>Your Portfolio QR Code</h3>
+          <img src={qrCodeUrl} alt="Portfolio QR Code" />
+          <p>Scan the QR code to view your portfolio.</p>
         </div>
       )}
     </div>
