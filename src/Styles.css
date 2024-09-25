@@ -36,7 +36,7 @@ body {
 
 .editor {
   width: 800px;
-  min-height: 100px; /* Adjust min-height to 100px */
+  min-height: 100px;
   border: none;
   padding: 40px 15px 20px;
   box-sizing: border-box;
@@ -82,4 +82,69 @@ body {
   background-color: #007bff;
   color: white;
   padding: 10px;
-  border: 1px; }
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.plus-button:hover {
+  background-color: #0056b3;
+}
+
+.media-toolbar {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.media-icon {
+  font-size: 24px;
+  margin: 0 10px;
+  cursor: pointer;
+  color: black;
+}
+
+.social-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border: 1px solid #ddd;
+  padding: 20px;
+  z-index: 1000;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.social-popup h3 {
+  margin: 0 0 10px;
+}
+
+.social-input {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.social-input select {
+  margin-right: 10px;
+}
+
+.social-input input {
+  width: 200px;
+}
+
+button {
+  padding: 8px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.social-icon {
+  margin-right: 10px;
+  font-size: 24px;
+}

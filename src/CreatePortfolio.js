@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './styles.css';
-import { FaPlus, FaCamera, FaLink } from 'react-icons/fa';
+import { FaPlus, FaCamera, FaLink, FaFacebook, FaTwitter, FaLinkedin } from 'react-icons/fa'; // Import social icons
 
 const CreatePortfolio = () => {
   const editorRef = useRef(null);
@@ -8,14 +8,15 @@ const CreatePortfolio = () => {
   const [toolbarStyle, setToolbarStyle] = useState({});
   const [selectedRange, setSelectedRange] = useState(null); // Save the current cursor range
   const [showMediaToolbar, setShowMediaToolbar] = useState(false);
+  const [showSocialPopup, setShowSocialPopup] = useState(false); // State for the social media popup
+  const [socialLinks, setSocialLinks] = useState([]); // Store the list of social links
+  const [currentLinks, setCurrentLinks] = useState([{ platform: '', url: '' }]); // Store multiple links
 
   const [title, setTitle] = useState('Add your title here');
   const [description, setDescription] = useState('Description');
   const [contentPlaceholder, setContentPlaceholder] = useState('Start creating your content here...');
 
-  const [fontSize, setFontSize] = useState(3); // Default font size
-
-  // Save the current cursor position when text is selected
+  // Handle text selection to show toolbar
   const handleSelection = () => {
     const selection = window.getSelection();
     if (selection && !selection.isCollapsed) {
@@ -42,13 +43,13 @@ const CreatePortfolio = () => {
     setShowToolbar(false);
   };
 
-  // Insert content (image) at the cursor's position
+  // Insert content (social link or image) at the cursor's position
   const insertContentAtCursor = (element) => {
     if (selectedRange) {
       selectedRange.insertNode(element);
       const newParagraph = document.createElement('p');
-      newParagraph.innerHTML = '<br>'; // Add a new paragraph to continue typing after the image
-      element.after(newParagraph); // Ensures the new line is placed after the image
+      newParagraph.innerHTML = '<br>'; // Add a new paragraph to continue typing after the element
+      element.after(newParagraph); // Ensures the new line is placed after the inserted element
       setSelectedRange(null); // Reset the selection
     } else if (editorRef.current) {
       editorRef.current.appendChild(element);
@@ -71,6 +72,51 @@ const CreatePortfolio = () => {
     setShowMediaToolbar(false); // Close media toolbar after upload
   };
 
+  // Insert social media links and render them
+  const handleAddSocialLinks = () => {
+    const validLinks = currentLinks.filter(link => link.platform && link.url); // Ensure we only add valid links
+    setSocialLinks([...socialLinks, ...validLinks]);
+    setCurrentLinks([{ platform: '', url: '' }]); // Reset the input fields
+    setShowSocialPopup(false); // Close popup after adding
+  };
+
+  // Handle adding more social links dynamically
+  const addMoreSocialLinks = () => {
+    setCurrentLinks([...currentLinks, { platform: '', url: '' }]);
+  };
+
+  // Get the appropriate social media icon component
+  const getSocialIconComponent = (platform) => {
+    switch (platform) {
+      case 'facebook':
+        return <FaFacebook className="social-icon" />;
+      case 'twitter':
+        return <FaTwitter className="social-icon" />;
+      case 'linkedin':
+        return <FaLinkedin className="social-icon" />;
+      default:
+        return null;
+    }
+  };
+
+  // Handle making social media icons clickable by wrapping them in an anchor element
+  const renderSocialLinks = () => {
+    return socialLinks.map((link, index) => (
+      <a 
+        key={index} 
+        href={link.url} 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        style={{ textDecoration: 'none', pointerEvents: 'auto' }} // Ensure links are clickable
+        contentEditable={false} // Prevent editing the links
+      >
+        {getSocialIconComponent(link.platform)}
+      </a>
+    ));
+  };
+  
+  
+
   // Detect if text is deselected to hide the toolbar
   const handleDeselect = () => {
     const selection = window.getSelection();
@@ -79,7 +125,7 @@ const CreatePortfolio = () => {
     }
   };
 
-  // Save cursor position when the media toolbar is opened, to place images at the right spot
+  // Save cursor position when the media toolbar is opened
   const toggleMediaToolbar = () => {
     const selection = window.getSelection();
     if (selection.rangeCount > 0) {
@@ -136,6 +182,9 @@ const CreatePortfolio = () => {
         style={{ minHeight: '100px' }}
       >
         {contentPlaceholder}
+
+        {/* Render social media links */}
+        {renderSocialLinks()}
       </div>
 
       {/* Text editing toolbar */}
@@ -184,7 +233,43 @@ const CreatePortfolio = () => {
             onChange={handleImageUpload}
             style={{ display: 'none' }}
           />
-          <FaLink className="media-icon" /> {/* Link embedding icon (future) */}
+          <FaLink className="media-icon" onClick={() => setShowSocialPopup(true)} /> {/* Social Media Link */}
+        </div>
+      )}
+
+      {/* Social Media Popup */}
+      {showSocialPopup && (
+        <div className="social-popup">
+          <h3>Social Media Links</h3>
+          {currentLinks.map((link, index) => (
+            <div key={index} className="social-input">
+              <select
+                value={link.platform}
+                onChange={(e) => {
+                  const newLinks = [...currentLinks];
+                  newLinks[index].platform = e.target.value;
+                  setCurrentLinks(newLinks);
+                }}
+              >
+                <option value="">Select Platform</option>
+                <option value="facebook">Facebook</option>
+                <option value="twitter">Twitter</option>
+                <option value="linkedin">LinkedIn</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Enter URL"
+                value={link.url}
+                onChange={(e) => {
+                  const newLinks = [...currentLinks];
+                  newLinks[index].url = e.target.value;
+                  setCurrentLinks(newLinks);
+                }}
+              />
+            </div>
+          ))}
+          <button onClick={addMoreSocialLinks}>+ Add another link</button>
+          <button onClick={handleAddSocialLinks}>Set Social Links</button>
         </div>
       )}
     </div>
