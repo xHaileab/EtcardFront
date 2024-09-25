@@ -6,6 +6,7 @@ body {
   justify-content: center;
   background-color: white;
   height: 100vh;
+  cursor: text;
 }
 
 .portfolio-container {
@@ -35,20 +36,21 @@ body {
 
 .editor {
   width: 800px;
-  min-height: 500px;
+  min-height: 100px; /* Adjust min-height to 100px */
   border: none;
   padding: 40px 15px 20px;
   box-sizing: border-box;
   border-radius: 5px;
   outline: none;
   margin-top: 0;
+  font-size: 18px;
+  cursor: text;
 }
 
 .toolbar {
   position: absolute;
   display: flex;
   background: black;
-  border: 1px solid #ccc;
   border-radius: 5px;
   z-index: 10;
   padding: 5px;
@@ -60,10 +62,7 @@ body {
   padding: 8px;
   cursor: pointer;
   font-size: 16px;
-}
-
-.toolbar button:hover {
-  background: #333;
+  color: white;
 }
 
 .font-size-adjust {
@@ -71,16 +70,16 @@ body {
   flex-direction: column;
 }
 
-.image-upload {
-  margin-top: 20px;
+.plus-button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
 }
 
-.image-upload input {
-  display: none;
-}
-
-.camera-icon {
-  font-size: 30px;
-  cursor: pointer;
-  color: black;
-}
+.plus-button {
+  font-size: 24px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  padding: 10px;
+  border: 1px; }
