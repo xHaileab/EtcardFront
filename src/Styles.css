@@ -1,0 +1,86 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  background-color: white;
+  height: 100vh;
+}
+
+.portfolio-container {
+  max-width: 800px;
+  width: 100%;
+  padding: 0 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.title, .description {
+  width: 800px;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+  border: none;
+  background-color: white;
+  font-size: 24px;
+  color: grey;
+}
+
+.description {
+  font-size: 18px;
+}
+
+.editor {
+  width: 800px;
+  min-height: 500px;
+  border: none;
+  padding: 40px 15px 20px;
+  box-sizing: border-box;
+  border-radius: 5px;
+  outline: none;
+  margin-top: 0;
+}
+
+.toolbar {
+  position: absolute;
+  display: flex;
+  background: black;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  z-index: 10;
+  padding: 5px;
+}
+
+.toolbar button {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.toolbar button:hover {
+  background: #333;
+}
+
+.font-size-adjust {
+  display: flex;
+  flex-direction: column;
+}
+
+.image-upload {
+  margin-top: 20px;
+}
+
+.image-upload input {
+  display: none;
+}
+
+.camera-icon {
+  font-size: 30px;
+  cursor: pointer;
+  color: black;
+}

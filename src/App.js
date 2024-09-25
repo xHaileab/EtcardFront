@@ -1,9 +1,10 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './HomePage';
 import CreatePortfolio from './CreatePortfolio';
 import PortfolioDetail from './PortfolioDetail';
 import Login from './Login';
+import './Styles.css'; // Import global styles
 
 function App() {
     return (

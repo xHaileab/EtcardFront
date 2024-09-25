@@ -1,73 +1,146 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState, useRef } from 'react';
+import './Styles.css';
 
-function CreatePortfolio() {
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [content, setContent] = useState('');
-    const [items, setItems] = useState([]);
+const CreatePortfolio = () => {
+  const editorRef = useRef(null);
+  const [showToolbar, setShowToolbar] = useState(false);
+  const [toolbarStyle, setToolbarStyle] = useState({});
+  const [selectionRange, setSelectionRange] = useState(null);
 
-    // Function to handle the addition of new content items
-    const handleAddItem = () => {
-        const newItem = { content };
-        setItems([...items, newItem]);
-        setContent(''); // Clear input after adding
+  const [title, setTitle] = useState('Add your title here');
+  const [description, setDescription] = useState('Description');
+  const [contentPlaceholder, setContentPlaceholder] = useState('Start creating your content here...');
+
+  const [fontSize, setFontSize] = useState(3); // Default font size
+
+  // Handle text selection to show toolbar
+  const handleSelection = () => {
+    const selection = window.getSelection();
+    if (!selection.isCollapsed) {
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      setToolbarStyle({
+        top: rect.top - 50 + window.scrollY,
+        left: rect.left + rect.width / 2 - 100 + window.scrollX,
+      });
+      setSelectionRange(range);
+      setShowToolbar(true);
+    } else {
+      setShowToolbar(false);
+    }
+  };
+
+  // Apply formatting commands
+  const applyCommand = (command, value = null) => {
+    if (selectionRange) {
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(selectionRange);
+    }
+    document.execCommand(command, false, value);
+    setShowToolbar(false);
+  };
+
+  // Adjust font size based on user input
+  const adjustFontSize = (size) => {
+    setFontSize(size);
+    applyCommand('fontSize', size);
+  };
+
+  // Handle image upload
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const img = document.createElement('img');
+      img.src = reader.result;
+      img.style.width = '100%'; // Resize image to fit the content width
+      editorRef.current.appendChild(img);
     };
+    if (file) {
+      reader.readAsDataURL(file);
+    }
+  };
 
-    // Function to publish the portfolio
-    const handlePublish = () => {
-        axios.post('http://localhost:5000/portfolios', {
-            title,
-            description,
-            content: JSON.stringify(items)  // Send all items as a single content string
-        })
-        .then(response => {
-            alert('Portfolio published successfully!');
-            setTitle('');
-            setDescription('');
-            setItems([]);
-        })
-        .catch(error => {
-            console.error('Error publishing portfolio:', error);
-            alert('Failed to publish portfolio.');
-        });
-    };
+  return (
+    <div className="portfolio-container">
+      {/* Title input */}
+      <div
+        className="title"
+        contentEditable
+        suppressContentEditableWarning
+        onFocus={() => setTitle('')}
+        onBlur={(e) => !e.target.textContent && setTitle('Add your title here')}
+      >
+        {title}
+      </div>
 
-    return (
-        <div style={{ padding: '20px' }}>
-            <h1>Create Portfolio</h1>
-            <input
-                type="text"
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-                placeholder="Title"
-                style={{ display: 'block', margin: '10px 0', width: '300px' }}
-            />
-            <textarea
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                placeholder="Description"
-                style={{ display: 'block', margin: '10px 0', width: '300px', height: '100px' }}
-            />
-            <textarea
-                value={content}
-                onChange={e => setContent(e.target.value)}
-                placeholder="Add new content item"
-                style={{ display: 'block', margin: '10px 0', width: '300px', height: '100px' }}
-            />
-            <button onClick={handleAddItem} style={{ marginRight: '10px' }}>+ Add Item</button>
-            <button onClick={handlePublish}>Publish</button>
+      {/* Description input */}
+      <div
+        className="description"
+        contentEditable
+        suppressContentEditableWarning
+        onFocus={() => setDescription('')}
+        onBlur={(e) => !e.target.textContent && setDescription('Description')}
+      >
+        {description}
+      </div>
 
-            <div style={{ marginTop: '20px' }}>
-                <h2>Preview</h2>
-                {items.map((item, index) => (
-                    <div key={index} style={{ margin: '10px 0', border: '1px solid #ccc', padding: '10px' }}>
-                        {item.content}
-                    </div>
-                ))}
-            </div>
+      {/* Content editor */}
+      <div
+        className="editor"
+        contentEditable
+        suppressContentEditableWarning
+        ref={editorRef}
+        onFocus={() => setContentPlaceholder('')}
+        onBlur={(e) => !e.target.textContent && setContentPlaceholder('Start creating your content here...')}
+        onMouseUp={handleSelection}
+        onKeyUp={handleSelection}
+      >
+        {contentPlaceholder}
+      </div>
+
+      {/* Toolbar */}
+      {showToolbar && (
+        <div className="toolbar" style={toolbarStyle}>
+          <button onClick={() => applyCommand('bold')}>
+            <b style={{ color: 'white' }}>B</b>
+          </button>
+          <button onClick={() => applyCommand('italic')}>
+            <i style={{ color: 'white' }}>I</i>
+          </button>
+          <button onClick={() => applyCommand('underline')}>
+            <u style={{ color: 'white' }}>U</u>
+          </button>
+          <div className="font-size-adjust">
+            <button onClick={() => adjustFontSize(fontSize - 1)}>
+              <span style={{ color: 'white' }}>A-</span>
+            </button>
+            <button onClick={() => adjustFontSize(fontSize + 1)}>
+              <span style={{ color: 'white' }}>A+</span>
+            </button>
+          </div>
+          <button onClick={() => applyCommand('formatBlock', '<blockquote>')}>
+            <span style={{ color: 'white' }}>“</span>
+          </button>
         </div>
-    );
-}
+      )}
+
+      {/* Image upload */}
+      <div className="image-upload">
+        <label htmlFor="imageInput">
+          <span role="img" aria-label="camera" className="camera-icon">
+            📷
+          </span>
+        </label>
+        <input
+          type="file"
+          id="imageInput"
+          accept="image/*"
+          onChange={handleImageUpload}
+        />
+      </div>
+    </div>
+  );
+};
 
 export default CreatePortfolio;
